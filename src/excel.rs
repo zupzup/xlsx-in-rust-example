@@ -10,7 +10,7 @@ pub fn create_xlsx(values: Vec<Thing>) {
     let workbook = Workbook::new(FILE_PATH);
     let mut sheet = workbook.add_worksheet(None).expect("can add sheet");
 
-    let mut width_map: HashMap<usize, usize> = HashMap::new();
+    let mut width_map: HashMap<u16, usize> = HashMap::new();
 
     create_headers(&mut sheet, &mut width_map);
 
@@ -25,7 +25,7 @@ pub fn create_xlsx(values: Vec<Thing>) {
         .set_font_size(FONT_SIZE);
 
     for (i, v) in values.iter().enumerate() {
-        create_row(i as u32, &v, &mut sheet, &date_fmt, &mut width_map);
+        add_row(i as u32, &v, &mut sheet, &date_fmt, &mut width_map);
     }
 
     width_map.iter().for_each(|(k, v)| {
@@ -35,12 +35,12 @@ pub fn create_xlsx(values: Vec<Thing>) {
     workbook.close().expect("workbook can be closed");
 }
 
-fn create_row(
+fn add_row(
     row: u32,
     thing: &Thing,
     sheet: &mut Worksheet,
     date_fmt: &Format,
-    mut width_map: &mut HashMap<usize, usize>,
+    mut width_map: &mut HashMap<u16, usize>,
 ) {
     let _ = sheet.write_string(row + 1, 0, &thing.id, None);
     set_new_max_width(0, thing.id.len(), &mut width_map);
@@ -79,7 +79,18 @@ fn create_row(
     let _ = sheet.set_row(row, FONT_SIZE, None);
 }
 
-fn set_new_max_width(col: usize, new: usize, width_map: &mut HashMap<usize, usize>) {
+fn add_string_column(
+    row: u32,
+    column: u16,
+    data: &str,
+    sheet: &mut Worksheet,
+    mut width_map: &mut HashMap<u16, usize>,
+) {
+    let _ = sheet.write_string(row + 1, column, data, None); // TODO: check this result
+    set_new_max_width(column, data.len(), &mut width_map);
+}
+
+fn set_new_max_width(col: u16, new: usize, width_map: &mut HashMap<u16, usize>) {
     match width_map.get(&col) {
         Some(max) => {
             if new > *max {
@@ -92,7 +103,7 @@ fn set_new_max_width(col: usize, new: usize, width_map: &mut HashMap<usize, usiz
     };
 }
 
-fn create_headers(sheet: &mut Worksheet, mut width_map: &mut HashMap<usize, usize>) {
+fn create_headers(sheet: &mut Worksheet, mut width_map: &mut HashMap<u16, usize>) {
     let _ = sheet.write_string(0, 0, "Id", None);
     let _ = sheet.write_string(0, 1, "StartDate", None);
     let _ = sheet.write_string(0, 2, "EndDate", None);
