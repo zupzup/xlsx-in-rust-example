@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 use chrono::prelude::*;
+use std::time::Instant;
 use uuid::Uuid;
 use warp::{Filter, Rejection, Reply};
 
@@ -33,7 +34,12 @@ async fn main() {
 }
 
 async fn report_handler() -> Result<impl Reply> {
-    Ok("report endpoint")
+    let now = Instant::now();
+    let result = tokio::task::spawn_blocking(move || excel::create_xlsx(create_things()))
+        .await
+        .expect("can create result");
+    println!("report took: {:?}", now.elapsed());
+    Ok(result)
 }
 
 fn create_things() -> Vec<Thing> {
