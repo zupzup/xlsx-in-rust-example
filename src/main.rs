@@ -35,7 +35,7 @@ async fn main() {
 
 async fn report_handler() -> Result<impl Reply> {
     let now = Instant::now();
-    let result = tokio::task::spawn_blocking(move || excel::create_xlsx(create_things()))
+    let result = tokio::task::spawn_blocking(move || excel::create_xlsx(THINGS.to_vec()))
         .await
         .expect("can create result");
     println!("report took: {:?}", now.elapsed());
